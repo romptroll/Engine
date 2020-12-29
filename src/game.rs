@@ -20,6 +20,9 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *   SOFTWARE.
  */
+
+use engine_core::info_log;
+
  
  /// Creates a single threaded game loop.
  /// Calls the applied callback to the applied state each frame.
@@ -61,6 +64,7 @@ pub struct GameData {
 
 impl GameData {
     fn new() -> GameData {
+        info_log!("d");
         GameData {
             frame_rate: 0,
             delta_time: 0.0,

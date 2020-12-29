@@ -20,12 +20,17 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *   SOFTWARE.
  */
+pub use engine_core as core;
+pub use engine_renderer as renderer;
+pub use engine_gui as gui;
 
 pub mod game;
 
 #[cfg(test)]
 mod tests {
     use crate::game::{Game, GameContainer, GameData};
+
+    use engine_core::info_log;
 
     struct TestGame {
 
@@ -36,8 +41,10 @@ mod tests {
             gd.shutdown();
         }
     }
+    
     #[test]
     fn t() {
         GameContainer::new().run(TestGame {});
+        info_log!("d");
     }
 }
