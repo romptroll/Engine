@@ -25,26 +25,47 @@ pub use engine_renderer as renderer;
 pub use engine_gui as gui;
 
 pub mod game;
+pub mod scene;
 
 #[cfg(test)]
 mod tests {
-    use crate::game::{Game, GameContainer, GameData};
+    use crate::{game::{Game, GameContainer, GameData}, scene::{Scene, SceneManager}};
 
-    use engine_core::info_log;
+    use engine_core::{info_log, warn_log};
+
+
+    struct GameScene {}
+
+    impl Scene for GameScene {
+        fn on_start(&mut self, _gd: &mut GameData) {
+            info_log!("hello");
+        }
+
+        fn on_update(&mut self, _gd: &mut GameData) {
+            warn_log!("dd");
+        }
+    }
 
     struct TestGame {
-
+        scenes: SceneManager,
     }
 
     impl Game for TestGame {
+        fn on_start(&mut self, gd: &mut GameData) {
+            self.scenes.add_scene(Box::new(GameScene {}), "game");
+            self.scenes.set_current_scene("game");
+            self.scenes.start(gd);
+        }
+
         fn on_update(&mut self, gd: &mut GameData) {
+            self.scenes.update(gd);
             gd.shutdown();
         }
     }
     
     #[test]
     fn t() {
-        GameContainer::new().run(TestGame {});
+        GameContainer::new().run(TestGame { scenes: SceneManager::new()});
         info_log!("d");
     }
 }

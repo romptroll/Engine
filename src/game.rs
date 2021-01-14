@@ -21,9 +21,6 @@
  *   SOFTWARE.
  */
 
-use engine_core::info_log;
-
- 
  /// Creates a single threaded game loop.
  /// Calls the applied callback to the applied state each frame.
  /// Gives the callback the current framerate and the curent deltatime for each call.
@@ -64,7 +61,6 @@ pub struct GameData {
 
 impl GameData {
     fn new() -> GameData {
-        info_log!("d");
         GameData {
             frame_rate: 0,
             delta_time: 0.0,
@@ -80,27 +76,30 @@ impl GameData {
     pub fn shutdown(&mut self) { self.running = false }
 }
 
+#[allow(unused_variables)]
 pub trait Game {
     //fn on_event(&mut self, event: EventHolder);
-    fn on_update(&mut self, game: &mut GameData);
+    fn on_start (&mut self, gd: &mut GameData) {}
+    fn on_update(&mut self, gd: &mut GameData) {}
+    fn on_render(&mut self, gd: &mut GameData) {}
+    fn on_exit  (&mut self, gd: &mut GameData) {}
 }
 
-pub struct GameContainer<State: Game> {
-    game: Option<State>,
+pub struct GameContainer {
     data: GameData,
 }
 
-impl<State: Game> GameContainer<State> {
-    pub fn new() -> GameContainer<State> {
+impl GameContainer {
+    pub fn new() -> GameContainer {
         GameContainer {
-            game: None,
             data: GameData::new(),
         }
     }
 
-    pub fn run(mut self, game: State) {
-        self.game = Some(game);
-        
+    pub fn run<State: Game>(mut self, game: State) {
+        let mut game = game;
+        game.on_start(&mut self.data);
+
         let mut draw_count : u32 = 0;
         let mut previous_time = std::time::SystemTime::now();
         let mut previous_update_time = previous_time;
@@ -108,13 +107,11 @@ impl<State: Game> GameContainer<State> {
         let mut frame_rate = 0;
 
         while self.data.is_running() {
-        self.data.delta_time = current_time.duration_since(previous_update_time).unwrap().as_secs_f32();
-        self.data.frame_rate = frame_rate;
+            self.data.delta_time = current_time.duration_since(previous_update_time).unwrap().as_secs_f32();
+            self.data.frame_rate = frame_rate;
 
-            match &mut self.game {
-                Some(game) => { game.on_update(&mut self.data); }
-                None => { panic!() }
-            }
+            game.on_update(&mut self.data);
+            game.on_render(&mut self.data);
 
             //if self.poll_events() == false { running = false; }
 
@@ -129,5 +126,7 @@ impl<State: Game> GameContainer<State> {
                 previous_time = current_time;
             }
         }
+
+        game.on_exit(&mut self.data);
     }
 }
