@@ -21,11 +21,11 @@
  *   SOFTWARE.
  */
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use engine_core::error_log;
 
-use crate::game::GameData;
+use crate::{event::Event, game::GameData};
 
 /*
  *   Copyright (c) 2021 Ludwig Bogsveen
@@ -57,12 +57,13 @@ pub trait Scene {
     fn on_exit      (&mut self, gd: &mut GameData) {}
     fn on_update    (&mut self, gd: &mut GameData) {}
     fn on_render    (&mut self, gd: &mut GameData) {}
-    fn on_event     (&mut self, gd: &mut GameData) {}
+    fn on_event     (&mut self, gd: &mut GameData, events: &mut VecDeque<Event>) {}
 }
 
 pub struct SceneManager {
     scenes: HashMap<String, Box<dyn Scene>>,
     current_scene: Option<String>,
+    events: VecDeque<Event>,
 }
 
 impl SceneManager {
@@ -70,6 +71,7 @@ impl SceneManager {
         SceneManager {
             scenes: HashMap::new(),
             current_scene: None,
+            events: VecDeque::new(),
         }
     }
 
@@ -92,6 +94,15 @@ impl SceneManager {
             Some(name) => self.scenes.get_mut(name).unwrap().on_render(gd),
             None => {}
         }
+    }
+
+    pub fn poll_events(&mut self, gd: &mut GameData) -> &mut VecDeque<Event>{
+        match &self.current_scene {
+            Some(name) => self.scenes.get_mut(name).unwrap().on_event(gd, &mut self.events),
+            None => {}
+        }
+
+        &mut self.events
     }
 
     pub fn add_scene(&mut self, scene: Box<dyn Scene>, name: &str) {

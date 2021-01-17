@@ -26,6 +26,7 @@ pub use engine_gui as gui;
 
 pub mod game;
 pub mod scene;
+pub mod event;
 
 #[cfg(test)]
 mod tests {
