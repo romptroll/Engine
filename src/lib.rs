@@ -30,43 +30,49 @@ pub mod event;
 
 #[cfg(test)]
 mod tests {
-    use crate::{game::{Game, GameContainer, GameData}, scene::{Scene, SceneManager}};
+    use crate::{game::{Game}, scene::{Scene, SceneManager}};
 
     use engine_core::{info_log, warn_log};
 
 
     struct GameScene {}
 
-    impl Scene for GameScene {
-        fn on_start(&mut self, _gd: &mut GameData) {
+    impl Scene<()> for GameScene {
+        fn on_start(&mut self, _d: &mut ()) {
             info_log!("hello");
         }
 
-        fn on_update(&mut self, _gd: &mut GameData) {
+        fn on_update(&mut self, _d: &mut ())  {
             warn_log!("dd");
         }
     }
 
     struct TestGame {
-        scenes: SceneManager,
+        scenes: SceneManager<()>,
     }
 
     impl Game for TestGame {
-        fn on_start(&mut self, gd: &mut GameData) {
+        fn on_start(&mut self) -> bool {
             self.scenes.add_scene(Box::new(GameScene {}), "game");
             self.scenes.set_current_scene("game");
-            self.scenes.start(gd);
+            self.scenes.start(&mut ());
+            true
         }
 
-        fn on_update(&mut self, gd: &mut GameData) {
-            self.scenes.update(gd);
-            gd.shutdown();
+        fn on_update(&mut self, _dt: f32) -> bool {
+            self.scenes.update(&mut ());
+            false
+        }
+
+        fn on_render(&mut self, _fps: u32) -> bool {
+            self.scenes.render(&mut ());
+            true
         }
     }
     
     #[test]
     fn t() {
-        GameContainer::new().run(TestGame { scenes: SceneManager::new()});
+        TestGame::run(TestGame { scenes: SceneManager::new()});
         info_log!("d");
     }
 }

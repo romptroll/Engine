@@ -52,66 +52,32 @@ pub fn render_loop<State>(render_callback: &dyn Fn(&mut State, f32, u32) -> bool
     }
 }
 
-pub struct GameData {
-    frame_rate: u32,
-    delta_time: f32,
-
-    running: bool,
-}
-
-impl GameData {
-    fn new() -> GameData {
-        GameData {
-            frame_rate: 0,
-            delta_time: 0.0,
-
-            running: true,
-        }
-    }
-
-    pub fn delta_time(&self) -> f32 { self.delta_time }
-    pub fn frame_rate(&self) -> u32 { self.frame_rate }
-
-    pub fn is_running(&self) -> bool { self.running }
-    pub fn shutdown(&mut self) { self.running = false }
-}
-
 #[allow(unused_variables)]
 pub trait Game {
     //fn on_event(&mut self, event: EventHolder);
-    fn on_start (&mut self, gd: &mut GameData) {}
-    fn on_update(&mut self, gd: &mut GameData) {}
-    fn on_render(&mut self, gd: &mut GameData) {}
-    fn on_exit  (&mut self, gd: &mut GameData) {}
-}
+    fn on_start (&mut self)             -> bool { true }
+    fn on_update(&mut self, dt: f32)    -> bool { true }
+    fn on_render(&mut self, fps: u32)   -> bool { true }
+    fn on_exit  (&mut self)             -> bool { true }
 
-pub struct GameContainer {
-    data: GameData,
-}
+    fn run<State: Game>(game: State) {
+        let mut running = true;
 
-impl GameContainer {
-    pub fn new() -> GameContainer {
-        GameContainer {
-            data: GameData::new(),
-        }
-    }
-
-    pub fn run<State: Game>(mut self, game: State) {
         let mut game = game;
-        game.on_start(&mut self.data);
+        running &= game.on_start();
 
         let mut draw_count : u32 = 0;
         let mut previous_time = std::time::SystemTime::now();
         let mut previous_update_time = previous_time;
         let mut current_time = previous_time;
         let mut frame_rate = 0;
+        let mut delta_time;
 
-        while self.data.is_running() {
-            self.data.delta_time = current_time.duration_since(previous_update_time).unwrap().as_secs_f32();
-            self.data.frame_rate = frame_rate;
+        while running {
+            delta_time = current_time.duration_since(previous_update_time).unwrap().as_secs_f32();
 
-            game.on_update(&mut self.data);
-            game.on_render(&mut self.data);
+            running &= game.on_update(delta_time);
+            running &= game.on_render(frame_rate);
 
             //if self.poll_events() == false { running = false; }
 
@@ -127,6 +93,6 @@ impl GameContainer {
             }
         }
 
-        game.on_exit(&mut self.data);
+        game.on_exit();
     }
 }
