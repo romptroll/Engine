@@ -26,7 +26,6 @@ pub use engine_gui as gui;
 
 pub mod game;
 pub mod scene;
-pub mod event;
 
 #[cfg(test)]
 mod tests {
@@ -37,7 +36,7 @@ mod tests {
 
     struct GameScene {}
 
-    impl Scene<()> for GameScene {
+    impl Scene<(), ()> for GameScene {
         fn on_start(&mut self, _d: &mut ()) {
             info_log!("hello");
         }
@@ -48,7 +47,7 @@ mod tests {
     }
 
     struct TestGame {
-        scenes: SceneManager<()>,
+        scenes: SceneManager<(), ()>,
     }
 
     impl Game for TestGame {
