@@ -25,27 +25,25 @@ use std::collections::{HashMap, VecDeque};
 
 use engine_core::error_log;
 
-use crate::{event::Event};
-
 #[allow(unused_variables)]
-pub trait Scene<T> {
-    fn on_start     (&mut self, data: &mut T) {}
-    fn on_enter     (&mut self, data: &mut T) {}
-    fn on_exit      (&mut self, data: &mut T) {}
-    fn on_update    (&mut self, data: &mut T) {}
-    fn on_render    (&mut self, data: &mut T) {}
-    fn on_event     (&mut self, data: &mut T, event: Event) {}
-    fn poll_events  (&mut self, data: &mut T, events: &mut VecDeque<Event>) {}
+pub trait Scene<Data, Event> {
+    fn on_start     (&mut self, data: &mut Data) {}
+    fn on_enter     (&mut self, data: &mut Data) {}
+    fn on_exit      (&mut self, data: &mut Data) {}
+    fn on_update    (&mut self, data: &mut Data) {}
+    fn on_render    (&mut self, data: &mut Data) {}
+    fn on_event     (&mut self, data: &mut Data, event: Event) {}
+    fn poll_events  (&mut self, data: &mut Data, events: &mut VecDeque<Event>) {}
 }
 
-pub struct SceneManager<T> {
-    scenes: HashMap<String, Box<dyn Scene<T>>>,
+pub struct SceneManager<Data, Event> {
+    scenes: HashMap<String, Box<dyn Scene<Data, Event>>>,
     current_scene: Option<String>,
     events: VecDeque<Event>,
 }
 
-impl<T> SceneManager<T> {
-    pub fn new() -> SceneManager<T> {
+impl<Data, Event> SceneManager<Data, Event> {
+    pub fn new() -> SceneManager<Data, Event> {
         SceneManager {
             scenes: HashMap::new(),
             current_scene: None,
@@ -53,35 +51,35 @@ impl<T> SceneManager<T> {
         }
     }
 
-    pub fn start(&mut self, data: &mut T) {
+    pub fn start(&mut self, data: &mut Data) {
         match &self.current_scene {
             Some(name) => self.scenes.get_mut(name).unwrap().on_start(data),
             None => {}
         }
     }
 
-    pub fn update(&mut self, data: &mut T) {
+    pub fn update(&mut self, data: &mut Data) {
         match &self.current_scene {
             Some(name) => self.scenes.get_mut(name).unwrap().on_update(data),
             None => {}
         }
     }
 
-    pub fn render(&mut self, data: &mut T) {
+    pub fn render(&mut self, data: &mut Data) {
         match &self.current_scene {
             Some(name) => self.scenes.get_mut(name).unwrap().on_render(data),
             None => {}
         }
     }
 
-    pub fn send_event(&mut self, data: &mut T, event: Event) {
+    pub fn send_event(&mut self, data: &mut Data, event: Event) {
         match &mut self.current_scene {
             Some(name) => self.scenes.get_mut(name).unwrap().on_event(data, event),
             None => {}
         }
     }
 
-    pub fn poll_events(&mut self, data: &mut T) -> VecDeque<Event>{
+    pub fn poll_events(&mut self, data: &mut Data) -> VecDeque<Event>{
         match &self.current_scene {
             Some(name) => self.scenes.get_mut(name).unwrap().poll_events(data, &mut self.events),
             None => {}
@@ -90,7 +88,7 @@ impl<T> SceneManager<T> {
         self.events.drain(..).collect()
     }
 
-    pub fn add_scene(&mut self, scene: Box<dyn Scene<T>>, name: &str) {
+    pub fn add_scene(&mut self, scene: Box<dyn Scene<Data, Event>>, name: &str) {
         self.scenes.insert(name.to_string(), scene);
     }
 
@@ -111,25 +109,25 @@ impl<T> SceneManager<T> {
         }
     }
 
-    pub fn current_scene(&self) -> Option<&Box<dyn Scene<T>>> {
+    pub fn current_scene(&self) -> Option<&Box<dyn Scene<Data, Event>>> {
         match &self.current_scene {
             Some(name) => Some(&self.scenes[name]),
             None => None,
         }
     }
 
-    pub fn current_scene_mut(&mut self) -> Option<&mut Box<dyn Scene<T>>> {
+    pub fn current_scene_mut(&mut self) -> Option<&mut Box<dyn Scene<Data, Event>>> {
         match &self.current_scene {
             Some(name) => self.scenes.get_mut(name),
             None => None,
         }
     }
 
-    pub fn scene(&self, name: &str) -> Option<&Box<dyn Scene<T>>> {
+    pub fn scene(&self, name: &str) -> Option<&Box<dyn Scene<Data, Event>>> {
         self.scenes.get(name)
     }
 
-    pub fn scene_mut(&mut self, name: &str) -> Option<&mut Box<dyn Scene<T>>> {
+    pub fn scene_mut(&mut self, name: &str) -> Option<&mut Box<dyn Scene<Data, Event>>> {
         self.scenes.get_mut(name)
     }
 }
