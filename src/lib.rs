@@ -23,6 +23,7 @@
 pub use engine_core as core;
 pub use engine_renderer as renderer;
 pub use engine_gui as gui;
+pub use engine_ecs as ecs;
 
 pub mod game;
 pub mod scene;
