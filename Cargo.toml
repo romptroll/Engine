@@ -11,3 +11,4 @@ edition = "2018"
 engine_core = {git = "https://github.com/romptroll/engine_core"}
 engine_renderer = {git = "https://github.com/romptroll/engine_renderer", branch = "main"}
 engine_gui = {git = "https://github.com/romptroll/engine_gui"}
+engine_ecs = {git = "https://github.com/romptroll/engine_ecs"}
